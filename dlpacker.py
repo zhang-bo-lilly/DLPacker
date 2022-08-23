@@ -35,10 +35,11 @@
 # SOFTWARE.
 # ==============================================================================
 
+import os
 import numpy as np
 
 from Bio.PDB import PDBParser, Selection, Superimposer, PDBIO, Atom, Residue, Structure
-from utils import DLPModel, InputBoxReader, DataGenerator, THE20, SCH_ATOMS, BB_ATOMS, SIDE_CHAINS, BOX_SIZE
+from .utils import DLPModel, InputBoxReader, DataGenerator, THE20, SCH_ATOMS, BB_ATOMS, SIDE_CHAINS, BOX_SIZE
 
 class DLPacker():
     # This is the meat of our code.
@@ -64,20 +65,21 @@ class DLPacker():
         self.altloc = ['A', 'B']  # initial altloc selection order preference
         
         self.str_pdb = str_pdb
-        self.ref_pdb = './reference.pdb' # reference atoms to align residues to
+        dir_name = os.path.dirname(__file__)
+        self.ref_pdb = dir_name + '/reference.pdb' # reference atoms to align residues to
         self._read_structures()
         self.reconstructed = None
         
-        self.lib_name = './library.npz' # library of rotamers
+        self.lib_name = dir_name + '/library.npz' # library of rotamers
         self._load_library()
         
         self.model = model
         if not self.model:
             self.model = DLPModel(width = 128, nres = 6)
-            self.model.load_model(weights = 'DLPacker_weights')
+            self.model.load_model(weights = dir_name + '/DLPacker_weights')
 
         self.input_reader = input_reader
-        if not self.input_reader: self.input_reader = InputBoxReader()
+        if not self.input_reader: self.input_reader = InputBoxReader(charges_filename=dir_name + '/charges.rtp')
     
     def _load_library(self):
         # Loads library of rotamers.
